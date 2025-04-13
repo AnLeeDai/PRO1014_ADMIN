@@ -1,6 +1,8 @@
-import { Button, Code, Divider, Group, ScrollArea, Stack, Title } from '@mantine/core';
+import { Link } from 'react-router-dom';
+import { Anchor, Button, Code, Divider, Group, ScrollArea, Stack, Title } from '@mantine/core';
 import { NavbarLink } from '@/components/NavbarLink/NavbarLink';
 import UserInfo from '@/components/UserInfo/UserInfo';
+import { routerConfig } from '@/constants/siteConfig';
 import classes from './DefaultLayout.module.css';
 
 interface INavbarLink {
@@ -15,7 +17,9 @@ export default function DefaultLayout({ children, title, action }: INavbarLink) 
       <nav className={classes.navbar}>
         <div className={classes.header}>
           <Group justify="center" align="center">
-            <Title>PRO1014-ADMIN</Title>
+            <Anchor component={Link} to={routerConfig.user}>
+              <Title>PRO1014-ADMIN</Title>
+            </Anchor>
 
             <Code fw={700} ta="center" w="100%">
               v0.0.1
