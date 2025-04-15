@@ -54,6 +54,12 @@ export default function LoginPage() {
         sameSite: 'None',
       });
 
+      Cookies.set('user_id', JSON.stringify(data.user.user_id), {
+        path: '/',
+        secure: true,
+        sameSite: 'None',
+      });
+
       navigate(routerConfig.user);
     },
 

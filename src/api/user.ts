@@ -20,8 +20,18 @@ export interface GetUserResponse {
   data: User[];
 }
 
+export interface GetUserInfoResponse {
+  user: User;
+}
+
 export const getUser = async (): Promise<GetUserResponse> => {
   const res = await axiosInstance.get(`?request=get-users`);
+
+  return res.data;
+};
+
+export const getUserInfo = async (userId: number): Promise<GetUserInfoResponse> => {
+  const res = await axiosInstance.get(`?request=get-user-by-id&id=${userId}`);
 
   return res.data;
 };

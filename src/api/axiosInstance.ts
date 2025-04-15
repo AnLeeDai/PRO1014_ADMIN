@@ -30,7 +30,6 @@ axiosInstance.interceptors.response.use(
     if (code === 'TOKEN_EXPIRED' || code === 'INVALID_TOKEN' || status === 440) {
       Cookies.remove('token');
       Cookies.remove('expires_in');
-      Cookies.remove('isLogin');
       Cookies.remove('user_id');
 
       window.location.href = routerConfig.login;

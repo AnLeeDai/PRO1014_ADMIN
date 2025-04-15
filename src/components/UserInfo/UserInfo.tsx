@@ -1,47 +1,56 @@
 import { IconAt, IconLogout, IconPhoneCall } from '@tabler/icons-react';
-import { Link } from 'react-router-dom';
+import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
 import { ActionIcon, Avatar, Group, Text, Tooltip } from '@mantine/core';
 import { routerConfig } from '@/constants/siteConfig';
+import { useUserInfo } from '@/hooks/useUserInfo';
 import classes from './UserInfo.module.css';
 
 export default function UserInfo() {
+  const navigate = useNavigate();
+
+  const { data: userInfo, isLoading: isLoadingUserInfo } = useUserInfo();
+
+  const handleLogout = () => {
+    Cookies.remove('token');
+    Cookies.remove('user_id');
+
+    navigate(routerConfig.login);
+  };
+
   return (
     <Group p="md" maw={100} wrap="nowrap">
-      <Avatar
-        src="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-2.png"
-        size="lg"
-        radius="md"
-      />
+      <Avatar src={userInfo?.user.avatar_url} size="lg" radius="md" />
 
       <div>
-        <Tooltip label="Robert Glassbreaker">
+        <Tooltip label={isLoadingUserInfo ? 'Loading...' : userInfo?.user.full_name}>
           <Text fz="lg" fw={500} className={classes.name} lineClamp={1}>
-            Robert Glassbreaker
+            {isLoadingUserInfo ? 'Loading...' : userInfo?.user.full_name}
           </Text>
         </Tooltip>
 
         <Group wrap="nowrap" gap={10} mt={3}>
           <IconAt stroke={1.5} size={16} className={classes.icon} />
 
-          <Tooltip label="robert@glassbreaker.io">
+          <Tooltip label={isLoadingUserInfo ? 'Loading...' : userInfo?.user.email}>
             <Text fz="xs" c="dimmed" lineClamp={1}>
-              robert@glassbreaker.io
+              {isLoadingUserInfo ? 'Loading...' : userInfo?.user.email}
             </Text>
           </Tooltip>
         </Group>
 
         <Group wrap="nowrap" gap={10} mt={5}>
           <IconPhoneCall stroke={1.5} size={16} className={classes.icon} />
-          <Tooltip label="+11 (876) 890 56 23">
+          <Tooltip label={isLoadingUserInfo ? 'Loading...' : userInfo?.user.phone_number}>
             <Text fz="xs" c="dimmed" lineClamp={1}>
-              +11 (876) 890 56 23
+              {isLoadingUserInfo ? 'Loading...' : userInfo?.user.phone_number}
             </Text>
           </Tooltip>
         </Group>
       </div>
 
       <Tooltip label="Đăng xuất" withArrow>
-        <ActionIcon color="red" component={Link} to={routerConfig.login}>
+        <ActionIcon color="red" onClick={handleLogout}>
           <IconLogout />
         </ActionIcon>
       </Tooltip>
