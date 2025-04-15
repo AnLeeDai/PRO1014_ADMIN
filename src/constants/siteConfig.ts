@@ -5,6 +5,5 @@ export const routerConfig = {
   banner: '/banner',
   category: '/category',
   product: '/product',
-  discountCode: '/discount-code',
   order: '/order',
 };
