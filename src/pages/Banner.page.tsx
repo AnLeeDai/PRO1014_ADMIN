@@ -1,3 +1,5 @@
+import DefaultLayout from '@/layouts/DefaultLayout/DefaultLayout';
+
 export default function BannerPage() {
-  return <div>BannerPage</div>;
+  return <DefaultLayout title="Quản lý banner">BannerPage</DefaultLayout>;
 }

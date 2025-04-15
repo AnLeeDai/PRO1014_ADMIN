@@ -1,32 +1,59 @@
 import React from 'react';
 import { IconEdit, IconTrash } from '@tabler/icons-react';
+import { Skeleton } from '@mantine/core';
+import { User } from '@/api/user';
 import MyTable from '@/components/MyTable/MyTable';
+import { useUser } from '@/hooks/useUser';
 import DefaultLayout from '@/layouts/DefaultLayout/DefaultLayout';
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-}
 
 export default function UserPage() {
   const [page, setPage] = React.useState(1);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [filterValue, setFilterValue] = React.useState<string | null>(null);
-  const filterOptions = ['Giá thấp đến cao', 'Giá cao đến thấp'];
+  const filterOptions = ['Tên người dùng', 'Email', 'Tình trạng'];
 
-  const productData: Product[] = [
-    { id: 1, name: 'Product A', price: 20 },
-    { id: 2, name: 'Product B', price: 35 },
+  const { data: userDataResponse, isLoading: isLoadingUser, error } = useUser();
+
+  if (isLoadingUser) {
+    return (
+      <DefaultLayout title="Quản lý người dùng">
+        <Skeleton height={50} mt={10} radius="md" />
+        <Skeleton height={50} mt={10} radius="md" />
+        <Skeleton height={50} mt={10} radius="md" />
+      </DefaultLayout>
+    );
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
+  const userData: User[] = userDataResponse?.data || [];
+
+  const userColumns = [
+    { key: 'id', title: 'User ID', render: (item: any) => item.user_id },
+    { key: 'username', title: 'Username', render: (item: any) => item.username },
+    { key: 'fullName', title: 'Full Name', render: (item: any) => item.full_name },
+    { key: 'email', title: 'Email', render: (item: any) => item.email },
+    { key: 'phoneNumber', title: 'Phone Number', render: (item: any) => item.phone_number },
+    { key: 'address', title: 'Address', render: (item: any) => item.address },
+    {
+      key: 'avatarUrl',
+      title: 'Avatar',
+      render: (item: any) => (
+        <img
+          src={item.avatar_url}
+          alt="Avatar"
+          style={{ width: '40px', height: '40px', borderRadius: '50%' }}
+        />
+      ),
+    },
+    { key: 'createdAt', title: 'Created At', render: (item: any) => item.created_at },
+    { key: 'role', title: 'Role' },
+    { key: 'isActive', title: 'Active', render: (item: any) => (item.is_active ? 'Yes' : 'No') },
   ];
 
-  const productColumns = [
-    { key: 'id', title: 'ID' },
-    { key: 'name', title: 'Tên sản phẩm' },
-    { key: 'price', title: 'Giá', render: (item: any) => `$${item.price}` },
-  ];
-
-  const productActions = [
+  const userActions = [
     {
       icon: IconEdit,
       color: 'blue',
@@ -41,17 +68,17 @@ export default function UserPage() {
     },
   ];
 
-  const filteredProducts = productData.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredUsers = userData.filter((user) =>
+    user.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <DefaultLayout title="Quản lý người dùng" action={() => console.log('Add new user')}>
       <MyTable
-        data={filteredProducts.slice((page - 1) * 5, page * 5)}
-        columns={productColumns}
-        actions={productActions}
-        total={filteredProducts.length}
+        data={filteredUsers.slice((page - 1) * 5, page * 5)}
+        columns={userColumns}
+        actions={userActions}
+        total={filteredUsers.length}
         page={page}
         onPageChange={setPage}
         onSearch={setSearchQuery}

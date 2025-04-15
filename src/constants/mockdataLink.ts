@@ -1,5 +1,4 @@
 import {
-  IconDiscount,
   IconImageInPicture,
   IconKey,
   IconList,
@@ -16,5 +15,4 @@ export const mockdata = [
   { label: 'Quản lý danh mục', icon: IconList, link: routerConfig.category },
   { label: 'Quản lý sản phẩm', icon: IconShoppingCart, link: routerConfig.product },
   { label: 'Quản lý đơn hàng', icon: IconTruckDelivery, link: routerConfig.order },
-  { label: 'Quản lý mã giảm giá', icon: IconDiscount, link: routerConfig.discountCode },
 ];

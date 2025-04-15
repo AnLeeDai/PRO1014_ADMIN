@@ -1,5 +1,17 @@
-import { Link } from 'react-router-dom';
-import { Anchor, Button, Code, Divider, Group, ScrollArea, Stack, Title } from '@mantine/core';
+import { useEffect, useState } from 'react';
+import Cookies from 'js-cookie';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  Anchor,
+  Button,
+  Code,
+  Divider,
+  Group,
+  Loader,
+  ScrollArea,
+  Stack,
+  Title,
+} from '@mantine/core';
 import { NavbarLink } from '@/components/NavbarLink/NavbarLink';
 import UserInfo from '@/components/UserInfo/UserInfo';
 import { routerConfig } from '@/constants/siteConfig';
@@ -12,6 +24,25 @@ interface INavbarLink {
 }
 
 export default function DefaultLayout({ children, title, action }: INavbarLink) {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!Cookies.get('token')) {
+      navigate('/login');
+    } else {
+      setLoading(false);
+    }
+  }, [navigate]);
+
+  if (loading) {
+    return (
+      <Group justify="center" align="center" style={{ width: '100%', height: '100vh' }}>
+        <Loader size="xl" />
+      </Group>
+    );
+  }
+
   return (
     <Group align="flex-start" gap={0}>
       <nav className={classes.navbar}>
@@ -20,7 +51,6 @@ export default function DefaultLayout({ children, title, action }: INavbarLink) 
             <Anchor component={Link} to={routerConfig.user}>
               <Title>PRO1014-ADMIN</Title>
             </Anchor>
-
             <Code fw={700} ta="center" w="100%">
               v0.0.1
             </Code>

@@ -3,7 +3,6 @@ import { routerConfig } from './constants/siteConfig';
 import BannerPage from './pages/Banner.page';
 import CategoryPage from './pages/Category.page';
 import ChangePasswordPage from './pages/ChangePassword.page';
-import DiscountCodePage from './pages/DiscountCode.page';
 import LoginPage from './pages/Login.page';
 import OrderPage from './pages/Order.page';
 import ProductPage from './pages/Product.page';
@@ -33,10 +32,6 @@ const router = createBrowserRouter([
   {
     path: routerConfig.product,
     element: <ProductPage />,
-  },
-  {
-    path: routerConfig.discountCode,
-    element: <DiscountCodePage />,
   },
   {
     path: routerConfig.order,
