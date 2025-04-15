@@ -50,7 +50,7 @@ export default function UserPage() {
     },
     { key: 'createdAt', title: 'Created At', render: (item: any) => item.created_at },
     { key: 'role', title: 'Role' },
-    { key: 'isActive', title: 'Active', render: (item: any) => (item.isActive ? 'Yes' : 'No') },
+    { key: 'isActive', title: 'Active', render: (item: any) => (item.is_active ? 'Yes' : 'No') },
   ];
 
   const userActions = [
