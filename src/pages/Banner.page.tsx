@@ -65,7 +65,7 @@ export default function BannerPageWithApi() {
 
   const API_BASE = 'http://localhost/PRO1014_SERVER/routes/';
   const token =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyNCwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0NDQ0MDIzMCwiZXhwIjoxNzQ0NDQzODMwfQ.BpJyod1t2lTQhUGQipkvrpyZZ7gzxMvhx_iqdjfY92c';
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyNCwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0NDcwOTkzMCwiZXhwIjoxNzQ0NzEzNTMwfQ.kKQX0tdzMI1c2sweBE5HTsLUZ_R8enX3Pg7Sqad7FWk';
     
 
   // Tạo axios instance  dùng để gọi API với cấu hình mặc định

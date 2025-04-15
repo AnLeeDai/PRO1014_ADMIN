@@ -14,6 +14,7 @@ import {
   Textarea,
   FileInput,
   Notification,
+  Select,
 } from '@mantine/core';
 import DefaultLayout from '@/layouts/DefaultLayout/DefaultLayout';
 
@@ -41,7 +42,7 @@ function ExtraInfoTextarea({
 
   const handleChange = (e: { target: { value: any } }) => {
     let newValue = e.target.value;
-    
+
     // Xử lý nếu người dùng nhập dấu phẩy
     if (newValue.endsWith(',')) {
       // Xóa dấu phẩy cuối cùng
@@ -49,7 +50,7 @@ function ExtraInfoTextarea({
       // Thêm thẻ <li><li/> vào cuối
       newValue += '<li><li/>';
     }
-    
+
     setValue(newValue);
     if (onChange) {
       onChange(newValue);
@@ -129,10 +130,11 @@ function TableProduct() {
   const [filterType, setFilterType] = useState<'max' | 'min' | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
+  const [categories, setCategories] = useState<{ category_id: number; category_name: string }[]>([]);
 
   const API_BASE = 'http://localhost/PRO1014_SERVER/routes/';
   const token =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyNCwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0NDQ0MDIzMCwiZXhwIjoxNzQ0NDQzODMwfQ.BpJyod1t2lTQhUGQipkvrpyZZ7gzxMvhx_iqdjfY92c';
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzQ0NzE1Mjc2LCJleHAiOjE3NDQ3MTg4NzZ9.AzGjFIrUDGBMcF-gdjxchDBB2duLIQkAd4QBdisCN3c';
 
   const axiosInstance = axios.create({
     baseURL: API_BASE,
@@ -140,25 +142,42 @@ function TableProduct() {
       Authorization: `Bearer ${token}`,
     },
   });
-  
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axiosInstance.get('', { params: { request: 'get-category' } });
+        if (response.data.success) {
+          setCategories(response.data.data);
+        } else {
+          console.error('Lỗi khi lấy danh sách danh mục:', response.data.message);
+        }
+      } catch (error) {
+        console.error('Có lỗi xảy ra khi lấy danh sách danh mục:', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
 
   // Hàm list sản phẩm và hiển thị giá trị min, max
   const fetchProducts = async (search: string, page: number, filter: 'max' | 'min' | null) => {
     setLoading(true); // Bật trạng thái loading khi bắt đầu lấy dữ liệu
     try {
       // Tạo object params để gửi yêu cầu lên server
-      const params: any = { 
-        request: 'get-products', 
-        search, 
+      const params: any = {
+        request: 'get-products',
+        search,
         page: page.toString(),
         show_hidden: '1' // Thêm tham số này để hiển thị cả sản phẩm đã ẩn
       };
-      
+
       // Nếu filter là 'max', sắp xếp theo giá giảm dần để lấy sản phẩm có giá cao nhất
       if (filter === 'max') {
         params.sort_by = 'price_desc';
         // Không đặt limit để lấy toàn bộ sản phẩm
-      } 
+      }
       // Nếu filter là 'min', sắp xếp theo giá tăng dần để lấy sản phẩm có giá thấp nhất
       else if (filter === 'min') {
         params.sort_by = 'price_asc';
@@ -302,39 +321,39 @@ function TableProduct() {
   // Hàm ẩn/hiện sản phẩm
   const toggleActive = async (id: number, isActive: number) => {
     console.log('ID được gửi:', id, 'Trạng thái hiện tại:', isActive);
-    
+
     if (!id) {
       console.error('ID sản phẩm không hợp lệ');
       setNotification('Lỗi: ID sản phẩm không hợp lệ');
       return;
     }
-    
+
     try {
       const newStatus = isActive ? 0 : 1;
       const requestType = newStatus === 1 ? 'post-unhide-product' : 'post-hide-product';
-      
+
       await axiosInstance.post(
         '',
         { product_id: id, is_active: newStatus },
         { params: { request: requestType } }
       );
-      
+
       // Cập nhật state trực tiếp thay vì tải lại dữ liệu từ server
-      setProducts(prevProducts => 
-        prevProducts.map(product => 
-          (product.id === id || product.product_id === id) 
-            ? { ...product, is_active: newStatus } 
+      setProducts(prevProducts =>
+        prevProducts.map(product =>
+          (product.id === id || product.product_id === id)
+            ? { ...product, is_active: newStatus }
             : product
         )
       );
-      
+
       setNotification(newStatus === 1 ? 'Đã mở khóa sản phẩm thành công.' : 'Đã ẩn sản phẩm thành công.');
     } catch (error) {
       console.error('Có lỗi xảy ra khi cập nhật trạng thái:', error);
       setNotification('Có lỗi xảy ra khi cập nhật trạng thái sản phẩm.');
     }
   };
-  
+
   return (
     <div>
       {/* Hiển thị thông báo nếu có */}
@@ -364,63 +383,77 @@ function TableProduct() {
       {loading ? (
         <Loader />
       ) : (
-        <Table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Tên sản phẩm</th>
-              <th>Ảnh</th>
-              <th>Giá</th>
-              <th>Tiêu đề</th>
-              <th>Phân khúc</th>
-              <th>Mô tả</th>
-              <th>Thông tin thêm</th>
-              <th>Trong kho</th>
-              <th>Trạng thái</th>
-              <th>Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map(product => (
-              <tr key={product.id}>
-                <td>{product.id}</td>
-                <td>{product.product_name}</td>
-                <td>
-                  <Image src={product.thumbnail} alt={product.product_name} height={50} width={50} />
-                </td>
-                <td>{parseFloat(product.price).toLocaleString('vi-VN')} VND</td>
-                <td>{product.short_description}</td>
-                <td>{product.brand}</td>
-                <td>{product.full_description.substring(0, 50)}...</td>
-                <td>{product.extra_info.substring(0, 50)}...</td>
-                <td>{product.in_stock}</td>
-                <td>{product.is_active ? 'Hiển thị' : 'Ẩn'}</td>
-                <td>
-                  <Group>
-                    <Button color="blue" onClick={() => openDetailModal(product)}>
-                      Chi tiết
-                    </Button>
-                    <Button
-                      color="yellow"
-                      onClick={() => {
-                        setSelectedProduct(product);
-                        setEditModalOpened(true);
-                      }}
-                    >
-                      Sửa
-                    </Button>
-                    <Button
-                      color={product.is_active ? 'red' : 'green'}
-                      onClick={() => toggleActive(product.product_id || product.id, product.is_active)}
-                    >
-                      {product.is_active ? 'Ẩn' : 'Hiển thị'}
-                    </Button>
-                  </Group>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
+        <Table style={{ border: '1px solid #ccc', borderCollapse: 'collapse' }}>
+  <thead>
+    <tr>
+      <th style={{ border: '1px solid #ccc', padding: '8px' }}>ID</th>
+      <th style={{ border: '1px solid #ccc', padding: '8px' }}>Tên sản phẩm</th>
+      <th style={{ border: '1px solid #ccc', padding: '8px' }}>Ảnh</th>
+      <th style={{ border: '1px solid #ccc', padding: '8px' }}>Giá</th>
+      <th style={{ border: '1px solid #ccc', padding: '8px' }}>Tiêu đề</th>
+      <th style={{ border: '1px solid #ccc', padding: '8px' }}>Phân khúc</th>
+      <th style={{ border: '1px solid #ccc', padding: '8px' }}>Mô tả</th>
+      <th style={{ border: '1px solid #ccc', padding: '8px' }}>Thông tin thêm</th>
+      <th style={{ border: '1px solid #ccc', padding: '8px' }}>Trong kho</th>
+      <th style={{ border: '1px solid #ccc', padding: '8px' }}>Danh mục</th>
+      <th style={{ border: '1px solid #ccc', padding: '8px' }}>Trạng thái</th>
+      <th style={{ border: '1px solid #ccc', padding: '8px' }}>Hành động</th>
+    </tr>
+  </thead>
+  <tbody>
+    {products.map(product => (
+      <tr key={product.id}>
+        <td style={{ border: '1px solid #ccc', padding: '8px' }}>{product.id}</td>
+        <td style={{ border: '1px solid #ccc', padding: '8px' }}>{product.product_name}</td>
+        <td style={{ border: '1px solid #ccc', padding: '8px' }}>
+          <Image src={product.thumbnail} alt={product.product_name} height={50} width={50} />
+        </td>
+        <td style={{ border: '1px solid #ccc', padding: '8px' }}>
+          {parseFloat(product.price).toLocaleString('vi-VN')} VND
+        </td>
+        <td style={{ border: '1px solid #ccc', padding: '8px' }}>{product.short_description}</td>
+        <td style={{ border: '1px solid #ccc', padding: '8px' }}>{product.brand}</td>
+        <td style={{ border: '1px solid #ccc', padding: '8px' }}>
+          {product.full_description.substring(0, 50)}...
+        </td>
+        <td style={{ border: '1px solid #ccc', padding: '8px' }}>
+          {product.extra_info.substring(0, 50)}...
+        </td>
+        <td style={{ border: '1px solid #ccc', padding: '8px' }}>{product.in_stock}</td>
+        <td style={{ border: '1px solid #ccc', padding: '8px' }}>{product.category_name}</td>
+        <td style={{ border: '1px solid #ccc', padding: '8px' }}>
+          {product.is_active ? 'Hiển thị' : 'Ẩn'}
+        </td>
+        <td style={{ border: '1px solid #ccc', padding: '8px' }}>
+          <Group>
+            <Button color="blue" onClick={() => openDetailModal(product)}>
+              Chi tiết
+            </Button>
+            <Button
+              color="yellow"
+              onClick={() => {
+                setSelectedProduct(product);
+                setEditModalOpened(true);
+              }}
+            >
+              Sửa
+            </Button>
+            <Button
+              color={product.is_active ? 'red' : 'green'}
+              onClick={() =>
+                toggleActive(product.product_id || product.id, product.is_active)
+              }
+            >
+              {product.is_active ? 'Ẩn' : 'Hiển thị'}
+            </Button>
+          </Group>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</Table>
+
+
       )}
 
       {/* Phân trang */}
@@ -481,7 +514,6 @@ function TableProduct() {
           <TextInput label="Tiêu đề" name="short_description" required />
           <TextInput label="Phân khúc" name="brand" required />
           <Textarea label="Mô tả" name="full_description" required />
-          {/* Sử dụng ExtraInfoTextarea với giá trị mặc định là `<li><li/>` */}
           <ExtraInfoTextarea
             label="Thông tin thêm"
             name="extra_info"
@@ -489,7 +521,12 @@ function TableProduct() {
             required
           />
           <NumberInput label="Số lượng" name="in_stock" required />
-          <NumberInput label="Danh mục" name="category_id" required />
+          <Select
+            label="Danh mục"
+            name="category_id"
+            data={categories.map(cat => ({ value: cat.category_id.toString(), label: cat.category_name }))}
+            required
+          />
           <Button type="submit" mt="md">
             Thêm
           </Button>
@@ -561,7 +598,6 @@ function TableProduct() {
               error={formErrors.full_description}
               required
             />
-            {/* Sử dụng ExtraInfoTextarea cho extra_info, nếu dữ liệu từ sản phẩm rỗng thì dùng giá trị mặc định */}
             <ExtraInfoTextarea
               label="Thông tin thêm"
               name="extra_info"
@@ -576,10 +612,11 @@ function TableProduct() {
               error={formErrors.in_stock}
               required
             />
-            <NumberInput
+            <Select
               label="Danh mục"
               name="category_id"
-              defaultValue={selectedProduct.category_id}
+              data={categories.map(cat => ({ value: cat.category_id.toString(), label: cat.category_name }))}
+              defaultValue={selectedProduct.category_id.toString()}
               error={formErrors.category_id}
               required
             />
