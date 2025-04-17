@@ -185,10 +185,13 @@ export default function ModalCreateProduct({ opened, onClose }: ModalCreateProdu
             render={({ field }) => (
               <TextInput
                 label="Giá sản phẩm (VNĐ)"
-                type="number"
+                type="text"
                 error={errors.price?.message}
-                {...field}
-                value={field.value ?? ''}
+                value={field.value ? Number(field.value).toLocaleString('vi-VN') : ''}
+                onChange={(e) => {
+                  const rawValue = e.currentTarget.value.replace(/[^0-9]/g, '');
+                  field.onChange(rawValue);
+                }}
               />
             )}
           />

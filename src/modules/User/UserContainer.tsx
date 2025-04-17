@@ -19,32 +19,36 @@ export default function UserContainer() {
   }
 
   if (error) {
-    return <div>Error: {error.message}</div>;
+    return <div>Lỗi: {error.message}</div>;
   }
 
   const userData: User[] = userDataResponse?.data || [];
 
   const userColumns = [
-    { key: 'id', title: 'User ID', render: (item: any) => item.user_id },
-    { key: 'username', title: 'Username', render: (item: any) => item.username },
-    { key: 'fullName', title: 'Full Name', render: (item: any) => item.full_name },
+    { key: 'id', title: 'Mã người dùng', render: (item: any) => item.user_id },
+    { key: 'username', title: 'Tên đăng nhập', render: (item: any) => item.username },
+    { key: 'fullName', title: 'Họ và tên', render: (item: any) => item.full_name },
     { key: 'email', title: 'Email', render: (item: any) => item.email },
-    { key: 'phoneNumber', title: 'Phone Number', render: (item: any) => item.phone_number },
-    { key: 'address', title: 'Address', render: (item: any) => item.address },
+    { key: 'phoneNumber', title: 'Số điện thoại', render: (item: any) => item.phone_number },
+    { key: 'address', title: 'Địa chỉ', render: (item: any) => item.address },
     {
       key: 'avatarUrl',
-      title: 'Avatar',
+      title: 'Ảnh đại diện',
       render: (item: any) => (
         <img
           src={item.avatar_url}
-          alt="Avatar"
+          alt="Ảnh đại diện"
           style={{ width: '40px', height: '40px', borderRadius: '50%' }}
         />
       ),
     },
-    { key: 'createdAt', title: 'Created At', render: (item: any) => item.created_at },
-    { key: 'role', title: 'Role' },
-    { key: 'isActive', title: 'Active', render: (item: any) => (item.is_active ? 'Yes' : 'No') },
+    { key: 'createdAt', title: 'Ngày tạo', render: (item: any) => item.created_at },
+    { key: 'role', title: 'Vai trò' },
+    {
+      key: 'isActive',
+      title: 'Trạng thái',
+      render: (item: any) => (item.is_active ? 'Hoạt động' : 'Không hoạt động'),
+    },
   ];
 
   const userActions = [
@@ -52,13 +56,13 @@ export default function UserContainer() {
       icon: IconEdit,
       color: 'blue',
       tooltipLabel: 'Chỉnh sửa',
-      onClick: (item: any) => console.log('Edit', item),
+      onClick: (item: any) => console.log('Chỉnh sửa', item),
     },
     {
       icon: IconTrash,
       color: 'red',
       tooltipLabel: 'Xóa',
-      onClick: (item: any) => console.log('Delete', item),
+      onClick: (item: any) => console.log('Xóa', item),
     },
   ];
 
