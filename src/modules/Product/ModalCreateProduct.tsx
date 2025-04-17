@@ -9,11 +9,16 @@ import {
   Group,
   Image,
   Modal,
+  Select,
   Stack,
   Textarea,
   TextInput,
   Title,
 } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
+import { useCategory } from '@/hooks/useCategory';
+import { useCreateProduct } from '@/hooks/useCreateProduct';
+import { useProduct } from '@/hooks/useProduct';
 
 const schema = yup.object().shape({
   product_name: yup
@@ -88,6 +93,56 @@ export default function ModalCreateProduct({ opened, onClose }: ModalCreateProdu
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
+    defaultValues: {
+      product_name: '',
+      price: 0,
+      thumbnail: undefined,
+      short_description: '',
+      full_description: '',
+      extra_info: '',
+      brand: '',
+      category_id: '',
+      in_stock: 0,
+      gallery: [],
+    },
+  });
+
+  const {
+    data: categories,
+    isLoading: isLoadingCategories,
+    isError: isErrorCategories,
+  } = useCategory();
+
+  if (isErrorCategories) {
+    notifications.show({
+      title: 'Lỗi tải danh mục',
+      message: 'Không thể tải danh mục sản phẩm',
+      color: 'red',
+    });
+  }
+
+  const { refetch: refetchProducts } = useProduct();
+
+  const { mutate: mutateCreateProduct, isPending: isLoadingCreateProduct } = useCreateProduct({
+    onSuccess: () => {
+      notifications.show({
+        title: 'Tạo sản phẩm thành công',
+        message: 'Sản phẩm đã được tạo thành công!',
+        color: 'green',
+      });
+
+      onClose();
+      reset();
+      refetchProducts();
+    },
+
+    onError: (error) => {
+      notifications.show({
+        title: 'Tạo sản phẩm thất bại',
+        message: error.message,
+        color: 'red',
+      });
+    },
   });
 
   const thumbnail = watch('thumbnail');
@@ -108,9 +163,7 @@ export default function ModalCreateProduct({ opened, onClose }: ModalCreateProdu
       }
     });
 
-    console.log('Form submitted', values);
-    // reset();
-    // onClose();
+    mutateCreateProduct(formData);
   };
 
   return (
@@ -151,9 +204,28 @@ export default function ModalCreateProduct({ opened, onClose }: ModalCreateProdu
           <Controller
             control={control}
             name="category_id"
-            render={({ field }) => (
-              <TextInput label="Danh mục ID" error={errors.category_id?.message} {...field} />
-            )}
+            render={({ field }) => {
+              const options = (categories?.data || [])
+                .filter((cat) => cat?.category_id != null && typeof cat.category_name === 'string')
+                .map((cat) => ({
+                  value: String(cat.category_id),
+                  label: cat.category_name,
+                }));
+
+              return (
+                <Select
+                  disabled={isLoadingCategories}
+                  label="Danh mục"
+                  placeholder="Chọn danh mục"
+                  data={options}
+                  error={errors.category_id?.message}
+                  searchable
+                  {...field}
+                  value={field.value ?? ''}
+                  onChange={(value) => field.onChange(value)}
+                />
+              );
+            }}
           />
 
           <Controller
@@ -196,10 +268,21 @@ export default function ModalCreateProduct({ opened, onClose }: ModalCreateProdu
             name="extra_info"
             render={({ field }) => (
               <Textarea
-                label="Thông tin thêm (HTML)"
-                minRows={3}
+                label="Thông tin thêm"
+                placeholder="Nhập các dòng, cách nhau bằng dấu phẩy: Bảo hành, Trả góp, ..."
                 error={errors.extra_info?.message}
-                {...field}
+                value={field.value ?? ''}
+                onChange={field.onChange}
+                onBlur={(e) => {
+                  const raw = e.currentTarget.value;
+                  const formatted = raw
+                    .split(',')
+                    .map((item) => item.trim())
+                    .filter((item) => item !== '')
+                    .map((item) => `<li>${item}</li>`)
+                    .join('');
+                  field.onChange(formatted);
+                }}
               />
             )}
           />
@@ -284,11 +367,13 @@ export default function ModalCreateProduct({ opened, onClose }: ModalCreateProdu
             )}
           />
 
-          <Group justify="flex-end" mt="md">
-            <Button variant="default" onClick={onClose}>
+          <Group justify="space-between" mt="md" wrap="nowrap">
+            <Button variant="default" onClick={onClose} fullWidth>
               Huỷ
             </Button>
-            <Button type="submit">Tạo sản phẩm</Button>
+            <Button type="submit" loading={isLoadingCreateProduct} fullWidth>
+              Tạo sản phẩm
+            </Button>
           </Group>
         </Stack>
       </form>
