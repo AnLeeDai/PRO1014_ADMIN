@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { IconX } from '@tabler/icons-react';
+import { IconPlus, IconX } from '@tabler/icons-react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import {
@@ -16,51 +16,35 @@ import {
   TextInput,
   Title,
 } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import { useCategory } from '@/hooks/useCategory';
+import { useEditProduct } from '@/hooks/useEditProduct';
+import { useProduct } from '@/hooks/useProduct';
 
 const schema = yup.object().shape({
-  product_name: yup
-    .string()
-    .required('Tên sản phẩm là bắt buộc')
-    .min(3, 'Tên sản phẩm phải có ít nhất 3 ký tự'),
-  price: yup
-    .number()
-    .typeError('Giá sản phẩm phải là số')
-    .required('Giá sản phẩm là bắt buộc')
-    .positive('Giá phải lớn hơn 0'),
-  short_description: yup
-    .string()
-    .required('Mô tả ngắn là bắt buộc')
-    .min(10, 'Mô tả ngắn phải từ 10 ký tự'),
-  full_description: yup
-    .string()
-    .required('Mô tả chi tiết là bắt buộc')
-    .min(20, 'Mô tả chi tiết phải từ 20 ký tự'),
-  extra_info: yup.string().required('Thông tin thêm là bắt buộc'),
-  brand: yup.string().required('Thương hiệu là bắt buộc'),
-  category_id: yup.string().required('Danh mục là bắt buộc'),
-  in_stock: yup
-    .number()
-    .typeError('Tồn kho phải là số')
-    .required('Tồn kho là bắt buộc')
-    .min(0, 'Tồn kho không thể âm'),
+  product_name: yup.string().required().min(3),
+  price: yup.number().typeError('Phải là số').positive().required(),
+  short_description: yup.string().required().min(10),
+  full_description: yup.string().required().min(20),
+  extra_info: yup.string().required(),
+  brand: yup.string().required(),
+  category_id: yup.string().required(),
+  in_stock: yup.number().typeError('Phải là số').min(0).required(),
   thumbnail: yup
     .mixed<File>()
-    .required('Thumbnail là bắt buộc')
-    .test('fileType', 'Chỉ chấp nhận ảnh JPG/PNG/WEBP', (file) =>
-      file ? ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) : false
+    .test('fileType', 'Ảnh JPG/PNG/WEBP', (file) =>
+      file ? ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) : true
     ),
   gallery: yup
     .array()
     .of(
       yup
         .mixed<File>()
-        .required('Ảnh không hợp lệ')
-        .test('fileType', 'Chỉ chấp nhận ảnh JPG/PNG/WEBP', (file) =>
-          file ? ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) : false
+        .test('fileType', 'Ảnh JPG/PNG/WEBP', (file) =>
+          file ? ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) : true
         )
     )
-    .min(1, 'Phải chọn ít nhất 1 ảnh gallery'),
+    .optional(),
 });
 
 export interface EditProductPayload {
@@ -89,7 +73,6 @@ export default function ModalEditProduct({ opened, onClose, product }: ModalEdit
     reset,
     handleSubmit,
     watch,
-    setValue,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
@@ -108,46 +91,62 @@ export default function ModalEditProduct({ opened, onClose, product }: ModalEdit
   });
 
   const { data: categories } = useCategory();
+  const { refetch } = useProduct();
 
-  const [thumbOldUrl, setThumbOldUrl] = useState<string>('');
+  const { mutate, isPending } = useEditProduct({
+    onSuccess: () => {
+      notifications.show({
+        title: 'Thành công',
+        message: 'Đã lưu sản phẩm!',
+        color: 'green',
+      });
+      onClose();
+      reset();
+      refetch();
+    },
+    onError: (error) =>
+      notifications.show({ title: 'Thất bại', message: error.message, color: 'red' }),
+  });
+
+  const [thumbOldUrl, setThumbOldUrl] = useState('');
   const [galleryOldUrls, setGalleryOldUrls] = useState<string[]>([]);
   const [galleryNewFiles, setGalleryNewFiles] = useState<File[]>([]);
-
+  const [removedOldUrls, setRemovedOldUrls] = useState<string[]>([]);
   const thumbnailFile = watch('thumbnail');
 
   useEffect(() => {
     if (!product) {
       return;
     }
-    const numericPrice =
+    const priceNum =
       typeof product.price === 'string'
         ? Number(product.price.replace(/[^\d]/g, ''))
         : product.price;
     reset({
-      product_name: product.product_name || '',
-      price: numericPrice || 0,
-      short_description: product.short_description || '',
-      full_description: product.full_description || '',
-      extra_info: product.extra_info || '',
-      brand: product.brand || '',
+      product_name: product.product_name,
+      price: priceNum,
+      short_description: product.short_description,
+      full_description: product.full_description,
+      extra_info: product.extra_info,
+      brand: product.brand,
       category_id: product.category_id ? String(product.category_id) : '',
-      in_stock: product.in_stock ?? 0,
+      in_stock: product.in_stock,
       thumbnail: undefined,
       gallery: [],
     });
     setThumbOldUrl(product.thumbnail || '');
     setGalleryOldUrls(product.gallery || []);
     setGalleryNewFiles([]);
+    setRemovedOldUrls([]);
   }, [product, reset]);
 
-  const onSubmit = (values: any) => {
-    const payload = {
+  const onSubmit = (values: any) =>
+    mutate({
+      product_id: product?.id,
       ...values,
-      id: product?.id,
-    };
-    console.log('DỮ LIỆU SUBMIT:', payload);
-    onClose();
-  };
+      keep_old_gallery: galleryOldUrls,
+      remove_old_gallery: removedOldUrls,
+    });
 
   return (
     <Modal opened={opened} onClose={onClose} title="Chỉnh sửa sản phẩm" size="600px" centered>
@@ -235,19 +234,18 @@ export default function ModalEditProduct({ opened, onClose, product }: ModalEdit
             render={({ field }) => (
               <Textarea
                 label="Thông tin thêm"
-                placeholder="Nhập các dòng, cách nhau bằng dấu phẩy: Bảo hành, Trả góp, ..."
+                placeholder="Mỗi mục cách nhau bằng dấu phẩy"
                 error={errors.extra_info?.message}
                 value={field.value ?? ''}
                 onChange={field.onChange}
                 onBlur={(e) => {
-                  const raw = e.currentTarget.value;
-                  const formatted = raw
+                  const items = e.currentTarget.value
                     .split(',')
-                    .map((item) => item.trim())
-                    .filter((item) => item !== '')
-                    .map((item) => `<li>${item}</li>`)
+                    .map((s) => s.trim())
+                    .filter(Boolean)
+                    .map((s) => `<li>${s}</li>`)
                     .join('');
-                  field.onChange(formatted);
+                  field.onChange(items);
                 }}
               />
             )}
@@ -258,17 +256,49 @@ export default function ModalEditProduct({ opened, onClose, product }: ModalEdit
             name="thumbnail"
             render={({ field }) => (
               <Stack>
-                <FileInput label="Thumbnail" accept="image/*" {...field} />
-                {thumbnailFile ? (
-                  <Image
-                    src={URL.createObjectURL(thumbnailFile)}
-                    w={150}
-                    h={150}
-                    radius="md"
-                    fit="cover"
-                  />
+                {!thumbnailFile && thumbOldUrl ? (
+                  <div style={{ position: 'relative', width: 150 }}>
+                    <Image src={thumbOldUrl} w={150} h={150} radius="md" fit="cover" />
+                    <ActionIcon
+                      size="sm"
+                      color="red"
+                      style={{ position: 'absolute', top: 5, right: 5 }}
+                      onClick={() => {
+                        setThumbOldUrl('');
+                        field.onChange(undefined);
+                      }}
+                    >
+                      <IconX size={14} />
+                    </ActionIcon>
+                  </div>
                 ) : (
-                  thumbOldUrl && <Image src={thumbOldUrl} w={150} h={150} radius="md" fit="cover" />
+                  <>
+                    <FileInput
+                      label="Thumbnail"
+                      accept="image/*"
+                      placeholder="Chọn ảnh mới…"
+                      {...field}
+                    />
+                    {thumbnailFile && (
+                      <div style={{ position: 'relative', width: 150 }}>
+                        <Image
+                          src={URL.createObjectURL(thumbnailFile)}
+                          w={150}
+                          h={150}
+                          radius="md"
+                          fit="cover"
+                        />
+                        <ActionIcon
+                          size="sm"
+                          color="red"
+                          style={{ position: 'absolute', top: 5, right: 5 }}
+                          onClick={() => field.onChange(undefined)}
+                        >
+                          <IconX size={14} />
+                        </ActionIcon>
+                      </div>
+                    )}
+                  </>
                 )}
               </Stack>
             )}
@@ -279,34 +309,49 @@ export default function ModalEditProduct({ opened, onClose, product }: ModalEdit
             render={({ field }) => (
               <Stack>
                 <FileInput
-                  label="Gallery (chọn mới để thay)"
                   accept="image/*"
                   multiple
+                  style={{ display: 'none' }}
                   onChange={(files) => {
-                    setGalleryNewFiles(files ?? []);
-                    field.onChange(files ?? []);
+                    const next = [...galleryNewFiles, ...(files ?? [])];
+                    setGalleryNewFiles(next);
+                    field.onChange(next);
                   }}
+                  id="gallery-file-input"
                 />
-                {galleryNewFiles.length > 0 && (
-                  <Group gap="sm" wrap="wrap">
-                    {galleryNewFiles.map((file, idx) => (
-                      <div key={idx} style={{ position: 'relative' }}>
+                <ActionIcon
+                  variant="light"
+                  size={42}
+                  radius="xl"
+                  onClick={() => {
+                    const input = document.getElementById(
+                      'gallery-file-input'
+                    ) as HTMLInputElement | null;
+                    input?.click();
+                  }}
+                  title="Thêm ảnh"
+                >
+                  <IconPlus size={24} />
+                </ActionIcon>
+                {galleryOldUrls.length > 0 && (
+                  <Group gap="sm" wrap="wrap" mt="xs">
+                    {galleryOldUrls.map((url) => (
+                      <div key={url} style={{ position: 'relative' }}>
                         <Image
-                          src={URL.createObjectURL(file)}
+                          src={url}
                           w={100}
                           h={100}
                           radius="sm"
+                          style={{ border: '1px solid #e2e8f0' }}
                           fit="cover"
                         />
                         <ActionIcon
                           size="sm"
                           color="red"
-                          style={{ position: 'absolute', top: 5, right: 5 }}
+                          style={{ position: 'absolute', top: 4, right: 4 }}
                           onClick={() => {
-                            const next = [...galleryNewFiles];
-                            next.splice(idx, 1);
-                            setGalleryNewFiles(next);
-                            setValue('gallery', next);
+                            setGalleryOldUrls((prev) => prev.filter((u) => u !== url));
+                            setRemovedOldUrls((prev) => [...prev, url]);
                           }}
                         >
                           <IconX size={14} />
@@ -315,10 +360,31 @@ export default function ModalEditProduct({ opened, onClose, product }: ModalEdit
                     ))}
                   </Group>
                 )}
-                {galleryNewFiles.length === 0 && galleryOldUrls.length > 0 && (
-                  <Group gap="sm" wrap="wrap">
-                    {galleryOldUrls.map((url, i) => (
-                      <Image key={i} src={url} w={100} h={100} radius="sm" fit="cover" />
+                {galleryNewFiles.length > 0 && (
+                  <Group gap="sm" wrap="wrap" mt="xs">
+                    {galleryNewFiles.map((file, idx) => (
+                      <div key={idx} style={{ position: 'relative' }}>
+                        <Image
+                          src={URL.createObjectURL(file)}
+                          w={100}
+                          h={100}
+                          radius="sm"
+                          style={{ border: '2px solid #38bdf8' }}
+                          fit="cover"
+                        />
+                        <ActionIcon
+                          size="sm"
+                          color="red"
+                          style={{ position: 'absolute', top: 4, right: 4 }}
+                          onClick={() => {
+                            const next = galleryNewFiles.filter((_, i) => i !== idx);
+                            setGalleryNewFiles(next);
+                            field.onChange(next);
+                          }}
+                        >
+                          <IconX size={14} />
+                        </ActionIcon>
+                      </div>
                     ))}
                   </Group>
                 )}
@@ -329,7 +395,9 @@ export default function ModalEditProduct({ opened, onClose, product }: ModalEdit
             <Button variant="default" onClick={onClose}>
               Huỷ
             </Button>
-            <Button type="submit">Lưu</Button>
+            <Button type="submit" loading={isPending}>
+              Lưu
+            </Button>
           </Group>
         </Stack>
       </form>

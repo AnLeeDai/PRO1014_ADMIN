@@ -56,3 +56,13 @@ export const createProduct = async (data: FormData): Promise<Product> => {
 
   return res.data;
 };
+
+export const editProduct = async (data: FormData): Promise<Product> => {
+  const res = await axiosInstance.post('?request=post-edit-product', data, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  return res.data;
+};
