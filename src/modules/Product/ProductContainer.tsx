@@ -15,6 +15,7 @@ import MyTable from '@/components/MyTable/MyTable';
 import { useProduct } from '@/hooks/useProduct';
 import DefaultLayout from '@/layouts/DefaultLayout/DefaultLayout';
 import ModalConfirmProduct from './ModalConfirmProduct';
+import ModalCreateProduct from './ModalCreateProduct';
 import ModalDetailProduct from './ModalDetailProduct';
 
 const parseToVND = (price: number | string) => {
@@ -31,6 +32,7 @@ export default function ProductContainer() {
   );
   const [detailOpened, setDetailOpened] = useState(false);
   const [detailProduct, setDetailProduct] = useState<any>(null);
+  const [createOpened, setCreateOpened] = useState(false);
 
   const { data: productDataRes, isPending: isPendingProductDataRes } = useProduct();
 
@@ -120,10 +122,14 @@ export default function ProductContainer() {
       extra_info: product.extra_info,
     })) || [];
 
-  const handlerAddProduct = () => {};
+  const handlerAddProduct = () => {
+    setCreateOpened(true);
+  };
 
   return (
     <>
+      <ModalCreateProduct opened={createOpened} onClose={() => setCreateOpened(false)} />
+
       <ModalDetailProduct
         opened={detailOpened}
         onClose={() => setDetailOpened(false)}
