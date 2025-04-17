@@ -17,6 +17,7 @@ import DefaultLayout from '@/layouts/DefaultLayout/DefaultLayout';
 import ModalConfirmProduct from './ModalConfirmProduct';
 import ModalCreateProduct from './ModalCreateProduct';
 import ModalDetailProduct from './ModalDetailProduct';
+import ModalEditProduct from './ModalEditProduct';
 
 const parseToVND = (price: number | string) => {
   return Number(price).toLocaleString('vi-VN', {
@@ -33,6 +34,8 @@ export default function ProductContainer() {
   const [detailOpened, setDetailOpened] = useState(false);
   const [detailProduct, setDetailProduct] = useState<any>(null);
   const [createOpened, setCreateOpened] = useState(false);
+  const [editOpened, setEditOpened] = useState(false);
+  const [editProduct, setEditProduct] = useState<any>(null);
 
   const { data: productDataRes, isPending: isPendingProductDataRes } = useProduct();
 
@@ -82,7 +85,28 @@ export default function ProductContainer() {
           </Tooltip>
 
           <Tooltip label="Chỉnh sửa" color="indigo" withArrow>
-            <ActionIcon variant="filled" color="indigo" aria-label="Edit">
+            <ActionIcon
+              variant="filled"
+              color="indigo"
+              aria-label="Edit"
+              onClick={() => {
+                setEditProduct({
+                  id: row.id,
+                  product_name: row.product_name,
+                  price: row.price,
+                  thumbnail: row.thumbnail,
+                  short_description: row.short_description,
+                  full_description: row.full_description,
+                  extra_info: row.extra_info,
+                  in_stock: row.in_stock,
+                  brand: row.brand,
+                  category_id: row.category_id,
+                  category_name: row.category_name,
+                  gallery: row.gallery,
+                });
+                setEditOpened(true);
+              }}
+            >
               <IconEdit size={24} />
             </ActionIcon>
           </Tooltip>
@@ -111,6 +135,7 @@ export default function ProductContainer() {
       id: product.id,
       product_name: product.product_name,
       category_name: product.category_name,
+      category_id: product.category_id,
       price: parseToVND(product.price),
       in_stock: product.in_stock,
       brand: product.brand,
@@ -120,6 +145,7 @@ export default function ProductContainer() {
       is_active: product.is_active,
       full_description: product.full_description,
       extra_info: product.extra_info,
+      short_description: product.short_description,
     })) || [];
 
   const handlerAddProduct = () => {
@@ -128,6 +154,12 @@ export default function ProductContainer() {
 
   return (
     <>
+      <ModalEditProduct
+        opened={editOpened}
+        onClose={() => setEditOpened(false)}
+        product={editProduct}
+      />
+
       <ModalCreateProduct opened={createOpened} onClose={() => setCreateOpened(false)} />
 
       <ModalDetailProduct
