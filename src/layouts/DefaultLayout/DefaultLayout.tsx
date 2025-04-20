@@ -49,7 +49,7 @@ export default function DefaultLayout({ children, title, action }: INavbarLink) 
         <div className={classes.header}>
           <Group justify="center" align="center">
             <Anchor component={Link} to={routerConfig.user}>
-              <Title>PRO1014-ADMIN</Title>
+              <Title>ADMIN</Title>
             </Anchor>
             <Code fw={700} ta="center" w="100%">
               v0.0.1
@@ -68,7 +68,7 @@ export default function DefaultLayout({ children, title, action }: INavbarLink) 
         </div>
       </nav>
 
-      <Stack flex={1} mt={55}>
+      <Stack flex={1} mt="lg">
         <Group px="md" justify="space-between">
           <Title order={1}>{title}</Title>
           {action && (

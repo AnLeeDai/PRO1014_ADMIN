@@ -1,4 +1,4 @@
-import { IconAt, IconLogout, IconPhoneCall } from '@tabler/icons-react';
+import { IconLogout } from '@tabler/icons-react';
 import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
 import { ActionIcon, Avatar, Group, Text, Tooltip } from '@mantine/core';
@@ -19,7 +19,7 @@ export default function UserInfo() {
   };
 
   return (
-    <Group p="md" maw={100} wrap="nowrap">
+    <Group p="md">
       <Avatar src={userInfo?.user.avatar_url} size="lg" radius="md" />
 
       <div>
@@ -30,8 +30,6 @@ export default function UserInfo() {
         </Tooltip>
 
         <Group wrap="nowrap" gap={10} mt={3}>
-          <IconAt stroke={1.5} size={16} className={classes.icon} />
-
           <Tooltip label={isLoadingUserInfo ? 'Loading...' : userInfo?.user.email}>
             <Text fz="xs" c="dimmed" lineClamp={1}>
               {isLoadingUserInfo ? 'Loading...' : userInfo?.user.email}
@@ -40,7 +38,6 @@ export default function UserInfo() {
         </Group>
 
         <Group wrap="nowrap" gap={10} mt={5}>
-          <IconPhoneCall stroke={1.5} size={16} className={classes.icon} />
           <Tooltip label={isLoadingUserInfo ? 'Loading...' : userInfo?.user.phone_number}>
             <Text fz="xs" c="dimmed" lineClamp={1}>
               {isLoadingUserInfo ? 'Loading...' : userInfo?.user.phone_number}
@@ -50,7 +47,7 @@ export default function UserInfo() {
       </div>
 
       <Tooltip label="Đăng xuất" withArrow>
-        <ActionIcon color="red" onClick={handleLogout}>
+        <ActionIcon color="red" onClick={handleLogout} flex={1}>
           <IconLogout />
         </ActionIcon>
       </Tooltip>

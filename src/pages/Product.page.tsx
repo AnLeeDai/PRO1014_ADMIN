@@ -1,5 +1,5 @@
-import DefaultLayout from '@/layouts/DefaultLayout/DefaultLayout';
+import ProductContainer from '@/modules/Product/ProductContainer';
 
 export default function ProductPage() {
-  return <DefaultLayout title="Quản lý sản phẩm">ProductPage</DefaultLayout>;
+  return <ProductContainer />;
 }
