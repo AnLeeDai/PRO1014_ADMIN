@@ -38,11 +38,24 @@ export interface GetAllProductResponse {
   data: Product[];
 }
 
-export const getAllProduct = async (): Promise<GetAllProductResponse> => {
-  const res = await axiosInstance.get(
-    '?request=get-products'
-    // `?request=get-products&page=${page}&limit=${limit}&sort_by=${sort_by}&search=${search}&category_id=${category_id}&min_price=${min_price}&max_price=${max_price}&brand=${brand}`
-  );
+export const getAllProduct = async (
+  category_id?: number,
+  search?: string,
+  min_price?: number,
+  max_price?: number,
+  brand?: string,
+  page: number = 1
+): Promise<GetAllProductResponse> => {
+  const res = await axiosInstance.get<GetAllProductResponse>('?request=get-products', {
+    params: {
+      ...(category_id && { category_id }),
+      ...(search && { search }),
+      ...(min_price && { min_price }),
+      ...(max_price && { max_price }),
+      ...(brand && { brand }),
+      page,
+    },
+  });
 
   return res.data;
 };
