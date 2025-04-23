@@ -185,14 +185,10 @@ export default function ModalEditProduct({ opened, onClose, product, refetch }: 
     mutate(fd);
   };
 
-  /* ---------- JSX ---------- */
   return (
     <Modal opened={opened} onClose={onClose} title="Chỉnh sửa sản phẩm" size="600px" centered>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack>
-          {/* ---------- Thông tin ---------- */}
-          <Title order={5}>Thông tin sản phẩm</Title>
-
           <Controller
             control={control}
             name="product_name"
@@ -258,7 +254,12 @@ export default function ModalEditProduct({ opened, onClose, product, refetch }: 
             control={control}
             name="short_description"
             render={({ field }) => (
-              <TextInput label="Mô tả ngắn" error={errors.short_description?.message} {...field} />
+              <Textarea
+                label="Mô tả ngắn"
+                autosize
+                error={errors.short_description?.message}
+                {...field}
+              />
             )}
           />
 
@@ -268,7 +269,7 @@ export default function ModalEditProduct({ opened, onClose, product, refetch }: 
             render={({ field }) => (
               <Textarea
                 label="Mô tả chi tiết"
-                minRows={3}
+                autosize
                 error={errors.full_description?.message}
                 {...field}
               />
@@ -285,6 +286,7 @@ export default function ModalEditProduct({ opened, onClose, product, refetch }: 
                 error={errors.extra_info?.message}
                 value={field.value ?? ''}
                 onChange={field.onChange}
+                autosize
                 onBlur={(e) => {
                   const items = e.currentTarget.value
                     .split(',')
@@ -374,17 +376,21 @@ export default function ModalEditProduct({ opened, onClose, product, refetch }: 
                   id="gallery-file-input"
                 />
 
-                <ActionIcon
-                  variant="light"
-                  size={42}
-                  radius="xl"
-                  onClick={() =>
-                    (document.getElementById('gallery-file-input') as HTMLInputElement)?.click()
-                  }
-                  title="Thêm ảnh"
-                >
-                  <IconPlus size={24} />
-                </ActionIcon>
+                <Group>
+                  <Title order={5}>Hình ảnh khác</Title>
+
+                  <ActionIcon
+                    variant="light"
+                    size={42}
+                    radius="xl"
+                    onClick={() =>
+                      (document.getElementById('gallery-file-input') as HTMLInputElement)?.click()
+                    }
+                    title="Thêm ảnh"
+                  >
+                    <IconPlus size={24} />
+                  </ActionIcon>
+                </Group>
 
                 {/* ảnh cũ */}
                 {galleryOldUrls.length > 0 && (

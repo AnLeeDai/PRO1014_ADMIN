@@ -168,7 +168,6 @@ export default function ModalCreateProduct({ opened, onClose, refetch }: ModalCr
     <Modal opened={opened} onClose={onClose} title="Tạo sản phẩm mới" size="600px" centered>
       <form onSubmit={handleSubmit(onFormSubmit)}>
         <Stack>
-          <Title order={5}>Thông tin sản phẩm</Title>
           <Controller
             control={control}
             name="product_name"
@@ -247,7 +246,12 @@ export default function ModalCreateProduct({ opened, onClose, refetch }: ModalCr
             control={control}
             name="short_description"
             render={({ field }) => (
-              <TextInput label="Mô tả ngắn" error={errors.short_description?.message} {...field} />
+              <Textarea
+                label="Mô tả ngắn"
+                autosize
+                error={errors.short_description?.message}
+                {...field}
+              />
             )}
           />
 
@@ -257,7 +261,7 @@ export default function ModalCreateProduct({ opened, onClose, refetch }: ModalCr
             render={({ field }) => (
               <Textarea
                 label="Mô tả chi tiết"
-                minRows={3}
+                autosize
                 error={errors.full_description?.message}
                 {...field}
               />

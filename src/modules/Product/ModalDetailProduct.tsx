@@ -44,6 +44,12 @@ export default function ModalDetailProduct({ opened, onClose, productId }: Props
             </Group>
           </Stack>
 
+          {/* MÔ TẢ NGẮN */}
+          <Stack gap={4}>
+            <Title order={5}>Mô tả ngắn</Title>
+            <Text size="sm">{data.product.short_description}</Text>
+          </Stack>
+
           {/* MÔ TẢ CHI TIẾT */}
           <Stack gap={4}>
             <Title order={5}>Mô tả chi tiết</Title>
