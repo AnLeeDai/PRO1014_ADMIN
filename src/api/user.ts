@@ -120,3 +120,55 @@ export const reactivateUser = async (userId: number): Promise<CreateUserResponse
 
   return res.data;
 };
+
+export interface GetPasswordRequestResponse {
+  success: boolean;
+  message: string;
+  filters: {
+    search: string;
+    status: null;
+  };
+  pagination: {
+    current_page: number;
+    limit: number;
+    total_pages: number;
+  };
+  data: {
+    id: number;
+    username: string;
+    email: string;
+    created_at: string;
+    status: string;
+  }[];
+}
+
+export const getPasswordRequest = async (
+  search?: string,
+  status?: string,
+  page: number = 1
+): Promise<GetPasswordRequestResponse> => {
+  const res = await axiosInstance.get<GetPasswordRequestResponse>(
+    '?request=get-admin-password-requests',
+    {
+      params: {
+        ...(search && { search }),
+        ...(status && { status }),
+        page,
+      },
+    }
+  );
+
+  return res.data;
+};
+
+export const processPasswordRequest = async (
+  request_id: number,
+  action: string
+): Promise<CreateUserResponse> => {
+  const res = await axiosInstance.post(`?request=post-admin-process-password-request`, {
+    request_id,
+    action,
+  });
+
+  return res.data;
+};

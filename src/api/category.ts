@@ -18,7 +18,6 @@ export interface GetAllCategoryResponse {
     current_page: number;
     limit: number;
     total_pages: number;
-    total_pages: number;
   };
   data: Category[];
 }
