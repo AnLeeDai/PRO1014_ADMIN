@@ -18,7 +18,6 @@ import {
 import { notifications } from '@mantine/notifications';
 import { useCategory } from '@/hooks/useCategory';
 import { useCreateProduct } from '@/hooks/useCreateProduct';
-import { useProduct } from '@/hooks/useProduct';
 
 const schema = yup.object().shape({
   product_name: yup
@@ -81,9 +80,10 @@ interface ProductFormValues {
 interface ModalCreateProductProps {
   opened: boolean;
   onClose: () => void;
+  refetch?: () => void;
 }
 
-export default function ModalCreateProduct({ opened, onClose }: ModalCreateProductProps) {
+export default function ModalCreateProduct({ opened, onClose, refetch }: ModalCreateProductProps) {
   const {
     control,
     handleSubmit,
@@ -121,8 +121,6 @@ export default function ModalCreateProduct({ opened, onClose }: ModalCreateProdu
     });
   }
 
-  const { refetch: refetchProducts } = useProduct();
-
   const { mutate: mutateCreateProduct, isPending: isLoadingCreateProduct } = useCreateProduct({
     onSuccess: () => {
       notifications.show({
@@ -133,7 +131,7 @@ export default function ModalCreateProduct({ opened, onClose }: ModalCreateProdu
 
       onClose();
       reset();
-      refetchProducts();
+      refetch?.();
     },
 
     onError: (error) => {

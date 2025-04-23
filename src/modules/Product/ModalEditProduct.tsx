@@ -19,7 +19,6 @@ import {
 import { notifications } from '@mantine/notifications';
 import { useCategory } from '@/hooks/useCategory';
 import { useEditProduct } from '@/hooks/useEditProduct';
-import { useProduct } from '@/hooks/useProduct';
 
 /* ---------- schema ---------- */
 const schema = yup.object().shape({
@@ -67,10 +66,11 @@ interface Props {
   opened: boolean;
   onClose: () => void;
   product: EditProductPayload | null;
+  refetch?: () => void;
 }
 
 /* ---------- component ---------- */
-export default function ModalEditProduct({ opened, onClose, product }: Props) {
+export default function ModalEditProduct({ opened, onClose, product, refetch }: Props) {
   const {
     control,
     reset,
@@ -94,16 +94,15 @@ export default function ModalEditProduct({ opened, onClose, product }: Props) {
   });
 
   const { data: categories } = useCategory();
-  const { refetch } = useProduct();
 
   /* ---------- mutation ---------- */
   const { mutate, isPending } = useEditProduct({
     onSuccess: () => {
       notifications.show({ title: 'Thành công', message: 'Đã lưu sản phẩm!', color: 'green' });
       reset();
-      refetch();
+      refetch?.();
       onClose();
-      window.location.reload();
+      // window.location.reload();
     },
     onError: (err) => notifications.show({ title: 'Thất bại', message: err.message, color: 'red' }),
   });

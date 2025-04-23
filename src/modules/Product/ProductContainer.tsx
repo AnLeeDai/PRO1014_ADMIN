@@ -74,14 +74,11 @@ export default function ProductContainer() {
   const categoryId = watchedCategoryId !== 'all' ? Number(watchedCategoryId) : undefined;
   const brand = watchedBrand !== 'all' ? watchedBrand : undefined;
 
-  const { data: productDataRes, isPending } = useProduct(
-    categoryId,
-    debouncedSearch,
-    min_price,
-    max_price,
-    brand,
-    watchedPage
-  );
+  const {
+    data: productDataRes,
+    isPending,
+    refetch,
+  } = useProduct(categoryId, debouncedSearch, min_price, max_price, brand, watchedPage);
 
   /* ---------- actions ---------- */
   const handleToggleVisibility = (
@@ -170,8 +167,13 @@ export default function ProductContainer() {
         opened={editOpened}
         onClose={() => setEditOpened(false)}
         product={editProduct}
+        refetch={refetch}
       />
-      <ModalCreateProduct opened={createOpened} onClose={() => setCreateOpened(false)} />
+      <ModalCreateProduct
+        opened={createOpened}
+        onClose={() => setCreateOpened(false)}
+        refetch={refetch}
+      />
       <ModalDetailProduct
         opened={detailOpened}
         onClose={() => {
@@ -185,6 +187,8 @@ export default function ProductContainer() {
         onClose={closeDelete}
         onHide={closeDelete}
         isState={selectedProduct?.is_active === 1 ? 'hide' : 'show'}
+        productId={selectedProduct?.id}
+        refetch={refetch}
       />
 
       {/* page content */}

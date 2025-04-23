@@ -93,3 +93,19 @@ export const editProduct = async (data: FormData): Promise<Product> => {
 
   return res.data;
 };
+
+export const hideProduct = async (product_id: number): Promise<Product> => {
+  const res = await axiosInstance.post('?request=post-hide-product', {
+    product_id,
+  });
+
+  return res.data;
+};
+
+export const unhideProduct = async (product_id: number): Promise<Product> => {
+  const res = await axiosInstance.post('?request=post-unhide-product', {
+    product_id,
+  });
+
+  return res.data;
+};

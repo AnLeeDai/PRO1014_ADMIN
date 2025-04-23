@@ -18,11 +18,11 @@ export default function App() {
   });
 
   return (
-    <MantineProvider theme={theme}>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider theme={theme}>
         <Notifications position="top-center" />
         <Router />
-      </QueryClientProvider>
-    </MantineProvider>
+      </MantineProvider>
+    </QueryClientProvider>
   );
 }
