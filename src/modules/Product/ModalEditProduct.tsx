@@ -103,6 +103,7 @@ export default function ModalEditProduct({ opened, onClose, product }: Props) {
       reset();
       refetch();
       onClose();
+      window.location.reload();
     },
     onError: (err) => notifications.show({ title: 'Thất bại', message: err.message, color: 'red' }),
   });
