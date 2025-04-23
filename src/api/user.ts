@@ -62,7 +62,6 @@ export interface GetUserResponse {
   pagination: {
     current_page: number;
     limit: number;
-    total_items: number;
     total_pages: number;
   };
   data: User[];

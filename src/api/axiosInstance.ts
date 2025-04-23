@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 import { routerConfig } from '@/constants/siteConfig';
 
 const axiosInstance = axios.create({
-  // baseURL: 'https://denial-formerly-seasonal-symposium.trycloudflare.com/PRO1014_SERVER/',
+  // baseURL: 'https://vision-attacks-house-sys.trycloudflare.com/PRO1014_SERVER/',
   baseURL: 'http://localhost/PRO1014_SERVER/',
   headers: {
     'Content-Type': 'application/json',

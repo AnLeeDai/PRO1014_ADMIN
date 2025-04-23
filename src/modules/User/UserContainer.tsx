@@ -196,7 +196,7 @@ export default function UserContainer() {
           columns={userColumns}
           actions={userActions}
           page={watchedPage}
-          total={userDataResponse?.pagination.total_items || 0}
+          total={userDataResponse?.pagination.total_pages || 0}
           onPageChange={(p) => setValue('page', p)}
         />
       </DefaultLayout>

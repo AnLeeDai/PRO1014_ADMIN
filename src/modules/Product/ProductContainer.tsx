@@ -260,7 +260,7 @@ export default function ProductContainer() {
               columns={productColumns}
               data={productData}
               page={watchedPage}
-              total={productDataRes?.pagination.total_items || 0}
+              total={productDataRes?.pagination.total_pages || 0}
               onPageChange={(p) => setValue('page', p)}
             />
           )}
