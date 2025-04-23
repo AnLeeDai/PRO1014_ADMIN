@@ -87,7 +87,7 @@ export default function OrderPage() {
               setPage(1);
               setSearch(e.currentTarget.value);
             }}
-            label="Tìm kiếm email/ID người dùng"
+            label="Tìm kiếm theo tên đăng nhập"
             placeholder="Nhập từ khoá…"
             leftSection={<IconSearch size={16} />}
           />
