@@ -1,5 +1,5 @@
-import DefaultLayout from '@/layouts/DefaultLayout/DefaultLayout';
+import OrderContainer from '@/modules/Order/OrderContainer';
 
 export default function OrderPage() {
-  return <DefaultLayout title="Quản lý đơn hàng">OrderPage</DefaultLayout>;
+  return <OrderContainer />;
 }

@@ -18,7 +18,6 @@ import {
 import { notifications } from '@mantine/notifications';
 import { useCategory } from '@/hooks/useCategory';
 import { useCreateProduct } from '@/hooks/useCreateProduct';
-import { useProduct } from '@/hooks/useProduct';
 
 const schema = yup.object().shape({
   product_name: yup
@@ -81,9 +80,10 @@ interface ProductFormValues {
 interface ModalCreateProductProps {
   opened: boolean;
   onClose: () => void;
+  refetch?: () => void;
 }
 
-export default function ModalCreateProduct({ opened, onClose }: ModalCreateProductProps) {
+export default function ModalCreateProduct({ opened, onClose, refetch }: ModalCreateProductProps) {
   const {
     control,
     handleSubmit,
@@ -121,8 +121,6 @@ export default function ModalCreateProduct({ opened, onClose }: ModalCreateProdu
     });
   }
 
-  const { refetch: refetchProducts } = useProduct();
-
   const { mutate: mutateCreateProduct, isPending: isLoadingCreateProduct } = useCreateProduct({
     onSuccess: () => {
       notifications.show({
@@ -133,7 +131,7 @@ export default function ModalCreateProduct({ opened, onClose }: ModalCreateProdu
 
       onClose();
       reset();
-      refetchProducts();
+      refetch?.();
     },
 
     onError: (error) => {
@@ -170,7 +168,6 @@ export default function ModalCreateProduct({ opened, onClose }: ModalCreateProdu
     <Modal opened={opened} onClose={onClose} title="Tạo sản phẩm mới" size="600px" centered>
       <form onSubmit={handleSubmit(onFormSubmit)}>
         <Stack>
-          <Title order={5}>Thông tin sản phẩm</Title>
           <Controller
             control={control}
             name="product_name"
@@ -249,7 +246,12 @@ export default function ModalCreateProduct({ opened, onClose }: ModalCreateProdu
             control={control}
             name="short_description"
             render={({ field }) => (
-              <TextInput label="Mô tả ngắn" error={errors.short_description?.message} {...field} />
+              <Textarea
+                label="Mô tả ngắn"
+                autosize
+                error={errors.short_description?.message}
+                {...field}
+              />
             )}
           />
 
@@ -259,7 +261,7 @@ export default function ModalCreateProduct({ opened, onClose }: ModalCreateProdu
             render={({ field }) => (
               <Textarea
                 label="Mô tả chi tiết"
-                minRows={3}
+                autosize
                 error={errors.full_description?.message}
                 {...field}
               />

@@ -13,17 +13,16 @@ export default function App() {
       queries: {
         refetchOnWindowFocus: false,
         retry: 0,
-        staleTime: 1000 * 60 * 5,
       },
     },
   });
 
   return (
-    <MantineProvider theme={theme}>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <MantineProvider theme={theme}>
         <Notifications position="top-center" />
         <Router />
-      </QueryClientProvider>
-    </MantineProvider>
+      </MantineProvider>
+    </QueryClientProvider>
   );
 }

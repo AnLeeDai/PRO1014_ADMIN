@@ -1,5 +1,6 @@
 import { SetStateAction, useState } from 'react';
-import { IconEdit, IconEye, IconEyeOff, IconSearch, IconX } from '@tabler/icons-react';
+import { IconEdit, IconEye, IconEyeOff, IconSearch } from '@tabler/icons-react';
+import { useForm } from 'react-hook-form';
 import {
   ActionIcon,
   Group,
@@ -10,7 +11,7 @@ import {
   TextInput,
   Tooltip,
 } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 import MyTable from '@/components/MyTable/MyTable';
 import { useProduct } from '@/hooks/useProduct';
 import DefaultLayout from '@/layouts/DefaultLayout/DefaultLayout';
@@ -19,26 +20,67 @@ import ModalCreateProduct from './ModalCreateProduct';
 import ModalDetailProduct from './ModalDetailProduct';
 import ModalEditProduct from './ModalEditProduct';
 
-const parseToVND = (price: number | string) => {
-  return Number(price).toLocaleString('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-  });
-};
+/* ---------- helper ---------- */
+const parseToVND = (p: number | string) =>
+  Number(p).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
 
 export default function ProductContainer() {
+  /* ---------- modal controls ---------- */
   const [opened, { open: openDelete, close: closeDelete }] = useDisclosure(false);
-  const [selectedProduct, setSelectedProduct] = useState<{ id: number; is_active?: number } | null>(
-    null
-  );
+
+  const [selectedProduct, setSelectedProduct] = useState<{
+    id: number;
+    is_active?: number;
+  } | null>(null);
+
   const [detailOpened, setDetailOpened] = useState(false);
-  const [detailProduct, setDetailProduct] = useState<any>(null);
+  const [detailId, setDetailId] = useState<number | null>(null);
+
   const [createOpened, setCreateOpened] = useState(false);
+
   const [editOpened, setEditOpened] = useState(false);
   const [editProduct, setEditProduct] = useState<any>(null);
 
-  const { data: productDataRes, isPending: isPendingProductDataRes } = useProduct();
+  /* ---------- filters ---------- */
+  const { register, watch, setValue } = useForm({
+    defaultValues: {
+      search: '',
+      brand: 'all',
+      price: 'all',
+      category_id: 'all',
+      page: 1,
+    },
+  });
 
+  const watchedSearch = watch('search');
+  const watchedBrand = watch('brand');
+  const watchedPrice = watch('price');
+  const watchedCategoryId = watch('category_id');
+  const watchedPage = watch('page');
+
+  const [debouncedSearch] = useDebouncedValue(watchedSearch, 500);
+
+  let min_price: number | undefined;
+  let max_price: number | undefined;
+  if (watchedPrice === '10000000') {
+    max_price = 10000000;
+  } else if (watchedPrice === '20000000') {
+    min_price = 10000000;
+    max_price = 20000000;
+  } else if (watchedPrice === '30000000') {
+    min_price = 20000000;
+  }
+
+  const categoryId = watchedCategoryId !== 'all' ? Number(watchedCategoryId) : undefined;
+  const brand = watchedBrand !== 'all' ? watchedBrand : undefined;
+
+  const {
+    data: productDataRes,
+    isPending,
+    refetch,
+  } = useProduct(categoryId, debouncedSearch, min_price, max_price, brand, watchedPage);
+
+  /* ---------- actions ---------- */
   const handleToggleVisibility = (
     product: SetStateAction<{ id: number; is_active?: number } | null>
   ) => {
@@ -46,8 +88,9 @@ export default function ProductContainer() {
     openDelete();
   };
 
+  /* ---------- table columns ---------- */
   const productColumns = [
-    { key: 'id', title: 'ID' },
+    { key: 'id', title: 'ID sản phẩm' },
     { key: 'product_name', title: 'Tên sản phẩm' },
     { key: 'category_name', title: 'Danh mục' },
     { key: 'price', title: 'Giá' },
@@ -66,17 +109,13 @@ export default function ProductContainer() {
       title: 'Hành động',
       render: (row: any) => (
         <Group>
+          {/* xem chi tiết */}
           <Tooltip label="Xem chi tiết" color="blue" withArrow>
             <ActionIcon
               variant="filled"
               color="blue"
-              aria-label="View"
               onClick={() => {
-                setDetailProduct({
-                  gallery: row.gallery,
-                  full_description: row.full_description,
-                  extra_info: row.extra_info,
-                });
+                setDetailId(row.id);
                 setDetailOpened(true);
               }}
             >
@@ -84,26 +123,13 @@ export default function ProductContainer() {
             </ActionIcon>
           </Tooltip>
 
+          {/* chỉnh sửa */}
           <Tooltip label="Chỉnh sửa" color="indigo" withArrow>
             <ActionIcon
               variant="filled"
               color="indigo"
-              aria-label="Edit"
               onClick={() => {
-                setEditProduct({
-                  id: row.id,
-                  product_name: row.product_name,
-                  price: row.price,
-                  thumbnail: row.thumbnail,
-                  short_description: row.short_description,
-                  full_description: row.full_description,
-                  extra_info: row.extra_info,
-                  in_stock: row.in_stock,
-                  brand: row.brand,
-                  category_id: row.category_id,
-                  category_name: row.category_name,
-                  gallery: row.gallery,
-                });
+                setEditProduct(row);
                 setEditOpened(true);
               }}
             >
@@ -111,6 +137,7 @@ export default function ProductContainer() {
             </ActionIcon>
           </Tooltip>
 
+          {/* ẩn / hiện */}
           <Tooltip
             label={row.is_active === 1 ? 'Ẩn sản phẩm' : 'Hiển thị sản phẩm'}
             color={row.is_active === 1 ? 'gray' : 'green'}
@@ -119,7 +146,6 @@ export default function ProductContainer() {
             <ActionIcon
               variant="filled"
               color={row.is_active === 1 ? 'gray' : 'green'}
-              aria-label={row.is_active === 1 ? 'Hide' : 'Show'}
               onClick={() => handleToggleVisibility(row)}
             >
               {row.is_active === 1 ? <IconEyeOff size={24} /> : <IconEye size={24} />}
@@ -131,105 +157,99 @@ export default function ProductContainer() {
   ];
 
   const productData =
-    productDataRes?.data?.map((product: any) => ({
-      id: product.id,
-      product_name: product.product_name,
-      category_name: product.category_name,
-      category_id: product.category_id,
-      price: parseToVND(product.price),
-      in_stock: product.in_stock,
-      brand: product.brand,
-      thumbnail: product.thumbnail,
-      gallery: product.gallery,
-      created_at: product.created_at,
-      is_active: product.is_active,
-      full_description: product.full_description,
-      extra_info: product.extra_info,
-      short_description: product.short_description,
-    })) || [];
-
-  const handlerAddProduct = () => {
-    setCreateOpened(true);
-  };
+    productDataRes?.data?.map((p: any) => ({ ...p, price: parseToVND(p.price) })) || [];
 
   return (
     <>
+      {/* modals */}
       <ModalEditProduct
         opened={editOpened}
         onClose={() => setEditOpened(false)}
         product={editProduct}
+        refetch={refetch}
       />
-
-      <ModalCreateProduct opened={createOpened} onClose={() => setCreateOpened(false)} />
-
+      <ModalCreateProduct
+        opened={createOpened}
+        onClose={() => setCreateOpened(false)}
+        refetch={refetch}
+      />
       <ModalDetailProduct
         opened={detailOpened}
-        onClose={() => setDetailOpened(false)}
-        product={detailProduct}
+        onClose={() => {
+          setDetailOpened(false);
+          setDetailId(null);
+        }}
+        productId={detailId}
       />
-
       <ModalConfirmProduct
         opened={opened}
         onClose={closeDelete}
-        onHide={() => {
-          if (!selectedProduct) {
-            return;
-          }
-          closeDelete();
-        }}
+        onHide={closeDelete}
         isState={selectedProduct?.is_active === 1 ? 'hide' : 'show'}
+        productId={selectedProduct?.id}
+        refetch={refetch}
       />
 
-      <DefaultLayout title="Quản lý sản phẩm" action={handlerAddProduct}>
+      {/* page content */}
+      <DefaultLayout title="Quản lý sản phẩm" action={() => setCreateOpened(true)}>
         <Stack>
+          {/* filters */}
           <Stack>
             <TextInput
-              flex={1}
               placeholder="Tìm kiếm sản phẩm"
               leftSection={<IconSearch size={16} />}
-              rightSection={<IconX size={16} />}
-              rightSectionWidth={30}
+              {...register('search')}
+              onBlur={() => setValue('page', 1)}
             />
-
-            <Group justify="space-between">
+            <Group grow>
               <Select
-                flex={1}
                 label="Lọc theo khoảng giá"
-                defaultValue="0-100000"
                 data={[
-                  { value: '0-100000', label: '0 - 100.000' },
-                  { value: '100000-500000', label: '100.000 - 500.000' },
-                  { value: '500000-1000000', label: '500.000 - 1.000.000' },
-                  { value: '1000000-2000000', label: '1.000.000 - 2.000.000' },
+                  { value: 'all', label: 'Tất cả giá' },
+                  { value: '10000000', label: 'Dưới 10 triệu' },
+                  { value: '20000000', label: '10–20 triệu' },
+                  { value: '30000000', label: 'Trên 20 triệu' },
                 ]}
+                value={watchedPrice}
+                onChange={(v) => {
+                  setValue('price', v || 'all');
+                  setValue('page', 1);
+                }}
               />
-
               <Select
-                flex={1}
                 label="Lọc theo danh mục"
-                defaultValue="1"
                 data={[
-                  { value: '1', label: 'Danh mục 1' },
-                  { value: '2', label: 'Danh mục 2' },
-                  { value: '3', label: 'Danh mục 3' },
+                  { value: 'all', label: 'Tất cả danh mục' },
+                  { value: '1', label: 'Điện thoại' },
+                  { value: '2', label: 'Máy tính bảng' },
+                  { value: '3', label: 'Laptop' },
+                  { value: '4', label: 'Phụ kiện' },
                 ]}
+                value={watchedCategoryId}
+                onChange={(v) => {
+                  setValue('category_id', v || 'all');
+                  setValue('page', 1);
+                }}
               />
-
               <Select
-                flex={1}
                 label="Lọc theo thương hiệu"
-                defaultValue="1"
                 data={[
-                  { value: '1', label: 'Thương hiệu 1' },
-                  { value: '2', label: 'Thương hiệu 2' },
-                  { value: '3', label: 'Thương hiệu 3' },
+                  { value: 'all', label: 'Tất cả hãng' },
+                  { value: 'Samsung', label: 'Samsung' },
+                  { value: 'Apple', label: 'Apple' },
+                  { value: 'Opple', label: 'Opple' },
                 ]}
+                value={watchedBrand}
+                onChange={(v) => {
+                  setValue('brand', v || 'all');
+                  setValue('page', 1);
+                }}
               />
             </Group>
           </Stack>
 
-          {/* Bảng dữ liệu sản phẩm */}
-          {isPendingProductDataRes ? (
+          {/* table */}
+          {isPending ? (
             <Stack>
               <Skeleton height={40} />
               <Skeleton height={40} />
@@ -239,9 +259,9 @@ export default function ProductContainer() {
             <MyTable
               columns={productColumns}
               data={productData}
-              onPageChange={(page) => console.log(page)}
-              page={1}
-              total={productDataRes?.pagination.total_items || 0}
+              page={watchedPage}
+              total={productDataRes?.pagination.total_pages || 0}
+              onPageChange={(p) => setValue('page', p)}
             />
           )}
         </Stack>
