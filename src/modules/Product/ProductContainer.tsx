@@ -159,7 +159,6 @@ export default function ProductContainer() {
   const productData =
     productDataRes?.data?.map((p: any) => ({ ...p, price: parseToVND(p.price) })) || [];
 
-  /* ---------- render ---------- */
   return (
     <>
       {/* modals */}
