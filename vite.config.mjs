@@ -10,6 +10,6 @@ export default defineConfig({
     setupFiles: './vitest.setup.mjs',
   },
   preview: {
-    allowedHosts: ['cfr-epa-manor-abandoned.trycloudflare.com'],
+    allowedHosts: ['atlas-nr-longitude-clerk.trycloudflare.com'],
   },
 });
