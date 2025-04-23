@@ -1,12 +1,18 @@
+import { useState } from 'react';
 import { IconEdit, IconTrash } from '@tabler/icons-react';
 import { Skeleton } from '@mantine/core';
 import { User } from '@/api/user';
 import MyTable from '@/components/MyTable/MyTable';
 import { useUser } from '@/hooks/useUser';
 import DefaultLayout from '@/layouts/DefaultLayout/DefaultLayout';
+import ModalAddNewUser from './ModalAddNewUser';
+import ModalEditUser from './ModalEditUser';
 
 export default function UserContainer() {
-  const { data: userDataResponse, isLoading: isLoadingUser, error } = useUser();
+  const { data: userDataResponse, isLoading: isLoadingUser, error, refetch } = useUser();
+  const [openModalAddNewUser, setOpenModalAddNewUser] = useState(false);
+  const [openModalEditUser, setOpenModalEditUser] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   if (isLoadingUser) {
     return (
@@ -56,7 +62,10 @@ export default function UserContainer() {
       icon: IconEdit,
       color: 'blue',
       tooltipLabel: 'Chỉnh sửa',
-      onClick: (item: any) => console.log('Chỉnh sửa', item),
+      onClick: (item: any) => {
+        setSelectedUser(item);
+        setOpenModalEditUser(true);
+      },
     },
     {
       icon: IconTrash,
@@ -66,11 +75,26 @@ export default function UserContainer() {
     },
   ];
 
-  const hanlderAddNewUser = () => {};
-
   return (
-    <DefaultLayout title="Quản lý người dùng" action={hanlderAddNewUser}>
-      <MyTable data={userData} columns={userColumns} actions={userActions} />
-    </DefaultLayout>
+    <>
+      <ModalAddNewUser
+        opened={openModalAddNewUser}
+        onClose={() => setOpenModalAddNewUser(false)}
+        refetch={refetch}
+      />
+
+      {selectedUser && (
+        <ModalEditUser
+          opened={openModalEditUser}
+          onClose={() => setOpenModalEditUser(false)}
+          user={selectedUser}
+          refetch={refetch}
+        />
+      )}
+
+      <DefaultLayout title="Quản lý người dùng" action={() => setOpenModalAddNewUser(true)}>
+        <MyTable data={userData} columns={userColumns} actions={userActions} />
+      </DefaultLayout>
+    </>
   );
 }

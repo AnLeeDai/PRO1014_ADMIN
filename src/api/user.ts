@@ -43,6 +43,14 @@ export interface CreateUserResponse {
   };
 }
 
+export interface EditUserReq {
+  user_id: number;
+  full_name: string;
+  email: string;
+  phone_number: string;
+  address: string;
+}
+
 export interface GetUserResponse {
   success: boolean;
   message: string;
@@ -66,7 +74,13 @@ export const getUserInfo = async (userId: number): Promise<GetUserInfoResponse> 
 };
 
 export const createUser = async (user: CreateUserReq): Promise<CreateUserResponse> => {
-  const res = await axiosInstance.post(`?request=create-user`, user);
+  const res = await axiosInstance.post(`?request=post-register`, user);
+
+  return res.data;
+};
+
+export const editUser = async (user: EditUserReq): Promise<CreateUserResponse> => {
+  const res = await axiosInstance.put(`?request=put-user`, user);
 
   return res.data;
 };
