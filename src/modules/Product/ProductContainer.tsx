@@ -90,7 +90,7 @@ export default function ProductContainer() {
 
   /* ---------- table columns ---------- */
   const productColumns = [
-    { key: 'id', title: 'ID' },
+    { key: 'id', title: 'ID sản phẩm' },
     { key: 'product_name', title: 'Tên sản phẩm' },
     { key: 'category_name', title: 'Danh mục' },
     { key: 'price', title: 'Giá' },
