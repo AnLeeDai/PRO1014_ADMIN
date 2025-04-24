@@ -34,6 +34,8 @@ const DiscountCodePage: React.FC<{
   paginate: (pageNumber: number) => void;
   goToPreviousPage: () => void;
   goToNextPage: () => void;
+  filterValue: string; // New prop for filter value
+  handleFilterChange: (event: React.ChangeEvent<HTMLSelectElement>) => void; // New prop for filter change handler
 }> = ({
   searchTerm,
   handleSearch,
@@ -51,6 +53,8 @@ const DiscountCodePage: React.FC<{
   paginate,
   goToPreviousPage,
   goToNextPage,
+  filterValue, // Receive filter value
+  handleFilterChange, // Receive filter change handler
 }) => {
   return (
     <div>
@@ -80,6 +84,16 @@ const DiscountCodePage: React.FC<{
               minWidth: '300px',
             }}
           />
+        </div>
+        <div>
+          <label htmlFor="filter" style={{ marginRight: '10px', fontWeight: 'bold' }}>Lọc theo giá trị:</label>
+          <select id="filter" value={filterValue} onChange={handleFilterChange} style={{ padding: '8px', borderRadius: '5px', border: '1px solid #ccc' }}>
+            <option value="">Tất cả</option>
+            <option value="0-25">0% - 25%</option>
+            <option value="26-50">26% - 50%</option>
+            <option value="51-75">51% - 75%</option>
+            <option value="76-100">76% - 100%</option>
+          </select>
         </div>
       </div>
 
@@ -543,7 +557,8 @@ const WrappedDiscountCodePage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const token =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyNCwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0NDI4MjU0OCwiZXhwIjoxNzQ0Mjg2MTQ4fQ.PhP6vM1EKm0Vey3979GRHEp_V7BN2Hpz-AaepVrRdj8';
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzQ0NzEzNzY4LCJleHAiOjE3NDQ3MTczNjh9.L6o5OUHp_F4Q3WMIyEFFQGbEoRn4ytS4Z9jUjIeD5GE';
+  const [filterValue, setFilterValue] = useState(''); // New state for filter value
 
   const fetchDiscountCodes = async () => {
     try {
@@ -570,9 +585,25 @@ const WrappedDiscountCodePage: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const filteredDiscountCodes = discountCodes.filter((discountCode) =>
-    discountCode.discount_code.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setFilterValue(event.target.value);
+    setCurrentPage(1); // Reset page when filter changes
+  };
+
+  const filteredDiscountCodes = discountCodes.filter((discountCode) => {
+    const searchMatch = discountCode.discount_code.toLowerCase().includes(searchTerm.toLowerCase());
+    let filterMatch = true;
+
+    if (filterValue) {
+      const [minStr, maxStr] = filterValue.split('-');
+      const min = parseInt(minStr, 10);
+      const max = parseInt(maxStr, 10);
+      const percent = parseInt(discountCode.percent_value, 10);
+      filterMatch = percent >= min && percent <= max;
+    }
+
+    return searchMatch && filterMatch;
+  });
 
   const totalFilteredPages = Math.ceil(filteredDiscountCodes.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -612,9 +643,9 @@ const WrappedDiscountCodePage: React.FC = () => {
     }
   };
 
-  const handleDeleteDiscountCode = async (discount_code: string) => {
-    console.log(discount_code);
-  
+  const handleDeleteDiscountCode = async (id: number) => {
+    console.log(id);
+
     if (window.confirm('Bạn có chắc chắn muốn xóa mã giảm giá này?')) {
       try {
         await axios.delete(
@@ -624,7 +655,7 @@ const WrappedDiscountCodePage: React.FC = () => {
               Authorization: `Bearer ${token}`,
             },
             data: { // Send data in the request body
-              discount_id: discount_code,
+              discount_id: id,
             },
           }
         );
@@ -659,6 +690,8 @@ const WrappedDiscountCodePage: React.FC = () => {
         paginate={paginate}
         goToPreviousPage={goToPreviousPage}
         goToNextPage={goToNextPage}
+        filterValue={filterValue} // Pass filter value to DiscountCodePage
+        handleFilterChange={handleFilterChange} // Pass filter change handler
       />
     </DefaultLayout>
   );

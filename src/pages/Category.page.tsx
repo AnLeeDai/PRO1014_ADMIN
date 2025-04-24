@@ -225,7 +225,7 @@ const WrappedCategoryPage: React.FC = () => {
   const itemsPerPage = 5;
 
   // Giả sử bạn có token được lưu ở đâu đó, ví dụ: localStorage
-  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyNCwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc0NDI4MjM5OSwiZXhwIjoxNzQ0Mjg1OTk5fQ.ozlpMukRIoNQH5VNunyqehZcj4kFsciFsOkaBAVBbG8'; // Token mới
+  const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzQ0NzEzNzY4LCJleHAiOjE3NDQ3MTczNjh9.L6o5OUHp_F4Q3WMIyEFFQGbEoRn4ytS4Z9jUjIeD5GE'; // Token mới
 
   const fetchCategories = async () => {
     try {
